@@ -451,6 +451,11 @@ multi_init(struct multi_context *m, struct context *t, bool tcp_mode, int thread
      */
     m->enable_c2c = t->options.enable_c2c;
 
+    /*
+     * Process incoming client traffic without verifying source IP address?
+     */
+    m->enable_spoofing = t->options.enable_spoofing;
+
     /* initialize stale routes check timer */
     if (t->options.stale_routes_check_interval > 0)
     {
@@ -2575,7 +2580,7 @@ multi_process_incoming_link(struct multi_context *m, struct multi_instance *inst
                     c->c2.to_tun.len = 0;
                 }
                 /* make sure that source address is associated with this client */
-                else if (multi_get_instance_by_virtual_addr(m, &src, true) != m->pending)
+                else if (!m->enable_spoofing && multi_get_instance_by_virtual_addr(m, &src, true) != m->pending)
                 {
                     /* IPv6 link-local address (fe80::xxx)? */
                     if ( (src.type & MR_ADDR_MASK) == MR_ADDR_IPV6

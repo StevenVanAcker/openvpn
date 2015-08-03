@@ -456,6 +456,7 @@ static const char usage_message[] =
     "--no-name-remapping : (DEPRECATED) Allow Common Name and X509 Subject to include\n"
     "                      any printable character.\n"
     "--client-to-client : Internally route client-to-client traffic.\n"
+    "--client-can-spoof : Do not verify source IP addresses on client traffic.\n"
     "--duplicate-cn  : Allow multiple clients with the same common name to\n"
     "                  concurrently connect.\n"
     "--client-connect cmd : Run command cmd on client connection.\n"
@@ -1262,6 +1263,7 @@ show_p2mp_parms(const struct options *o)
     msg(D_SHOW_PARMS, "  push_ifconfig_ipv6_local = %s/%d", print_in6_addr(o->push_ifconfig_ipv6_local, 0, &gc), o->push_ifconfig_ipv6_netbits );
     msg(D_SHOW_PARMS, "  push_ifconfig_ipv6_remote = %s", print_in6_addr(o->push_ifconfig_ipv6_remote, 0, &gc));
     SHOW_BOOL(enable_c2c);
+    SHOW_BOOL (enable_spoofing);
     SHOW_BOOL(duplicate_cn);
     SHOW_INT(cf_max);
     SHOW_INT(cf_per);
@@ -2372,6 +2374,10 @@ options_postprocess_verify_ce(const struct options *options, const struct connec
         if (options->enable_c2c)
         {
             msg(M_USAGE, "--client-to-client requires --mode server");
+        }
+        if (options->enable_spoofing)
+        {
+            msg(M_USAGE, "--client-can-spoof requires --mode server");
         }
         if (options->duplicate_cn)
         {
@@ -6795,6 +6801,11 @@ add_option(struct options *options,
     {
         VERIFY_PERMISSION(OPT_P_GENERAL);
         options->enable_c2c = true;
+    }
+    else if (streq(p[0], "client-can-spoof") && !p[1])
+    {
+        VERIFY_PERMISSION(OPT_P_GENERAL);
+        options->enable_spoofing = true;
     }
     else if (streq(p[0], "duplicate-cn") && !p[1])
     {

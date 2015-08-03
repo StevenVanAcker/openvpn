@@ -189,6 +189,7 @@ struct multi_context {
 #endif
 
     struct deferred_signal_schedule_entry deferred_shutdown_signal;
+    bool enable_spoofing;
 };
 
 /*
